@@ -1,3 +1,2 @@
-Flask
-Spotipy
+spotipy
 python-dotenv
