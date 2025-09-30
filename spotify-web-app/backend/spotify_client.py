@@ -75,6 +75,7 @@ def get_playlist_tracks(sp, playlist_id: str) -> dict:
     return results
 
 
+
 def main() -> None:
     # Get user profile
     # In case we want UX to refer to the user's name, etc.
@@ -85,6 +86,8 @@ def main() -> None:
     # Get tracks from a specific playlist
     playlist_id = get_user_playlist(sp)['items'][1]['id']
     playlist_tracks = get_playlist_tracks(sp, playlist_id)
+
+
 
 
 if __name__ == "__main__":
