@@ -17,6 +17,7 @@ load_dotenv()
 # Access API keys
 CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+REDIRECT_URI = os.getenv('REDIRECT_URI')
 
 # Scope: What data we want from the user's account
 SCOPE = "playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-top-read user-read-recently-played"
@@ -27,17 +28,16 @@ SCOPE = "playlist-read-private playlist-modify-public playlist-modify-private us
 # ==============================================================================
 
 def create_spotify_oauth(redirect_uri: str):
-    """Create SpotifyOAuth object for authentication"""
+    # Create Spotify oauth object
     return SpotifyOAuth(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
-        redirect_uri=redirect_uri,
+        redirect_uri=REDIRECT_URI,
         scope=SCOPE
     )
 
-
 def refresh_token_if_expired(sp_oauth, token_info):
-    """Check if token is expired and refresh if needed"""
+    # Refresh token if expired
     if sp_oauth.is_token_expired(token_info):
         token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
     return token_info
@@ -48,19 +48,22 @@ def refresh_token_if_expired(sp_oauth, token_info):
 # ==============================================================================
 
 def get_user_profile(sp) -> dict:
-    """Get the current user's profile information"""
+    # Get user profile
     user_profile = sp.current_user()
+    # print(user_profile)
     return user_profile
 
 
 def get_user_playlists(sp, limit=50) -> list:
-    """Get the current user's playlists"""
+    # Get user's playlists
     user_playlists = sp.current_user_playlists(limit=limit)
+    # print('---')
+    # print(user_playlists['items'])
     return user_playlists['items']
 
 
 def get_playlist_tracks(sp, playlist_id: str) -> list:
-    """Get tracks from a specific playlist"""
+    # Get tracks in a specific playlist
     results = sp.playlist_tracks(playlist_id)
     
     tracks = []
@@ -78,7 +81,7 @@ def get_playlist_tracks(sp, playlist_id: str) -> list:
 
 
 def get_top_tracks(sp, limit=10, time_range='short_term') -> list:
-    """Get user's most played tracks"""
+    # Get user's top tracks
     results = sp.current_user_top_tracks(limit=limit, time_range=time_range)
     
     tracks = []
@@ -92,7 +95,7 @@ def get_top_tracks(sp, limit=10, time_range='short_term') -> list:
 
 
 def get_recently_played(sp, limit=10) -> list:
-    """Get user's recently played tracks"""
+    # Get user's recently played tracks
     results = sp.current_user_recently_played(limit=limit)
     
     tracks = []
