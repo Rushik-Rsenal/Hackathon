@@ -12,12 +12,40 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 
 
 # ==============================================================================
+# HELPER FUNCTIONS
+# ==============================================================================
+
+def get_token():
+    """Get token from session and refresh if expired"""
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return None
+    
+    # Refresh token if expired
+    sp_oauth = create_spotify_oauth(url_for('callback', _external=True))
+    token_info = refresh_token_if_expired(sp_oauth, token_info)
+    session['token_info'] = token_info
+    
+    return token_info
+
+
+def get_spotify_client():
+    """Get authenticated Spotify client"""
+    token_info = get_token()
+    if not token_info:
+        return None
+    return spotipy.Spotify(auth=token_info['access_token'])
+
+
+# ==============================================================================
 # ROUTES
 # ==============================================================================
 
 @app.route('/')
 def index():
     # Home page
+    if get_token():
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
 
@@ -46,8 +74,22 @@ def callback():
 
 @app.route('/dashboard')
 def dashboard():
-    # Main page for sorting and user profile
-    return render_template('dashboard.html')
+    # User dashboard
+    sp = get_spotify_client()
+    if not sp:
+        return redirect(url_for('login'))
+    
+    try:
+        # Get user info and playlists
+        user = get_user_profile(sp)
+        playlists = get_user_playlists(sp, limit=50)
+        
+        # Pass data to template
+        return render_template('dashboard.html', 
+                             user=user, 
+                             playlists=playlists)
+    except Exception as e:
+        return f"Error loading dashboard: {str(e)}", 500
 
 
 @app.route('/logout')

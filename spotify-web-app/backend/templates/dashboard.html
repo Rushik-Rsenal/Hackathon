@@ -9,11 +9,30 @@
 <body>
     <header>
         <h1>Welcome to Your Spotify Dashboard</h1>
-
+        <h2>Welcome, {{ user.display_name }}</h2>
+        <p>You have {{ user.followers.total }} followers!</p>
+        {% if user.images %}
+            <img src="{{ user.images[0].url }}" alt="Profile Picture">
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
     </header>
 
+    <hr>
+
     <main>
-        
+        <h2>Your Playlists</h2>
+
+        {% for playlist in playlists %}
+            <div class="playlist">
+                <h3>{{ playlist.name }}</h3>
+                <p>By {{ playlist.owner.display_name }}</p>
+                <p>{{ playlist.tracks.total }} tracks</p>
+                {% if playlist.images %}
+                    <img src="{{ playlist.images[0].url }}" alt="Playlist Cover" class="playlist-cover">
+                {% endif %}
+            </div>
+        {% endfor %}
+
     </main>
 
 </body>
