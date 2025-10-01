@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sortify — Sort by Criteria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-1:#24c25a;
+    --green-2:#18964f;
+    --chip:#f2fff8;
+    --ink:#1a1a1a;
+    --text:#ffffff;
+    --muted:#d9f3e3;
+    --panel: rgba(255,255,255,.14);
+    --panel2: rgba(0,0,0,.18);
+    --card:#181818;
+    --card2:#212121;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+    color:var(--text);
+    background:linear-gradient(180deg,var(--green-1),#7ddf9c 55%,#f8fffb 100%);
+  }
+  .wrap{min-height:100%; padding:26px 26px 46px; display:flex; flex-direction:column; align-items:center}
+  .brand{
+    display:flex; align-items:center; gap:14px; padding:10px 18px;
+    background:var(--chip); color:#167c43; border-radius:999px; font-weight:800; font-size:36px;
+    box-shadow:0 10px 24px rgba(0,0,0,.12);
+    margin:4px auto 8px;
+  }
+  .brand::before,.brand::after{content:"•"; font-weight:900; color:#0c8a45}
+    .grid {
+    width: min(1200px, 94vw);
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 26px;
+    margin-top: 40px;   /* đổi từ 10px thành 40px để cách logo rõ hơn */
+    }
+  /* left */
+  .panel{
+    background:linear-gradient(180deg, var(--panel), rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:18px; padding:18px; box-shadow:0 12px 30px rgba(0,0,0,.16);
+  }
+  .h2{font-weight:800; font-size:26px; margin:8px 2px 14px}
+  .thead{display:grid; grid-template-columns:56px 1fr 56px; font-size:12px; text-transform:uppercase;
+         letter-spacing:.12em; color:var(--muted); padding:0 10px 8px}
+  .plist{display:flex; flex-direction:column; gap:10px; max-height:540px; overflow:auto; padding-right:6px}
+  .row{
+    display:grid; grid-template-columns:56px 1fr 56px; gap:8px; align-items:center;
+    padding:8px 10px; border-radius:12px; transition:.18s; cursor:pointer;
+    background:transparent; border:1px solid transparent;
+  }
+  .row:hover{ background:rgba(255,255,255,.10) }
+  .row.active{ background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.28) }
+  .cover{width:46px;height:46px;border-radius:10px;background:#ccc;overflow:hidden}
+  .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .count{justify-self:end; color:#e7f6ee}
+  /* right */
+  .board{display:flex; flex-direction:column; gap:14px}
+   .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;   /* căn giữa hàng chip */
+    margin: 20px 0;            /* tạo khoảng cách trên dưới */
+    }
+
+    .chip {
+    background: #ffffff;       /* nền trắng */
+    color: #178f4b;            /* chữ xanh đậm */
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-weight: 800;
+    border: 2px solid #178f4b;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+    background: #e6f9ee;       /* hover: nền xanh nhạt */
+    }
+
+    .chip.active {
+    background: #178f4b;       /* active: nền xanh đậm */
+    color: #fff;               /* chữ trắng */
+    border-color: #178f4b;
+    }
+
+  .bucket-wrap{ background:rgba(0,0,0,.16); border:1px solid rgba(0,0,0,.12); border-radius:16px; padding:16px}
+  .buckets{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .card{background:var(--card); border-radius:16px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.28)}
+  .card header{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+  .disc{width:58px;height:58px;border-radius:10px;background:#0e0e0e;overflow:hidden}
+  .ttl{font-size:22px; font-weight:900; line-height:1.2}
+  .tracks{}
+  .track{
+    background:var(--card2); color:#d7d7d7; border-radius:10px; padding:8px 10px;
+    display:grid; grid-template-columns:20px 1fr 52px; gap:10px; align-items:center;
+    border:1px solid #2b2b2b;
+  }
+  .track+.track{margin-top:8px}
+  .idx{opacity:.75}
+  .len{justify-self:end; opacity:.8}
+  .meta{opacity:.8}
+  .generate{
+    margin:24px auto 0; display:block; background:linear-gradient(180deg, var(--green-2), #0f7a41);
+    color:#fff; font-weight:900; letter-spacing:.04em; border:none; border-radius:999px; padding:16px 40px; font-size:20px;
+    box-shadow:0 14px 30px rgba(0,0,0,.22); cursor:pointer
+  }
+  .generate:disabled{opacity:.6; cursor:not-allowed}
+  .top-title{font-size:28px; font-weight:800; text-align:center; margin:4px 0 0}
+  @media (max-width:980px){ .grid{grid-template-columns:1fr} .buckets{grid-template-columns:1fr} }
+  .toast{
+    position:fixed; right:16px; bottom:16px; background:#111; color:#f6f6f6; padding:10px 14px; border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.28); display:none; z-index:50; font-size:14px
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Sortify</div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <aside class="panel">
+      <div class="h2">Pick your Playlist</div>
+      <div class="thead"><div>COVER</div><div>NAME</div><div>#</div></div>
+      <div id="playlists" class="plist"></div>
+    </aside>
+
+    <!-- RIGHT -->
+    <section class="board">
+      <div class="top-title">Sort by Criteria</div>
+        <div id="chips" class="chips">
+        <button class="chip active" data-key="energy">ENERGETIC</button>
+        <button class="chip" data-key="danceability">BEAT PER MINUTE</button>
+        <button class="chip" data-key="valence">EMOTION</button>
+        <button class="chip" data-key="acousticness">ACOUSTIC</button>
+        <button class="chip" data-key="popularity">POPULARITY</button>
+        </div>
+
+      <div class="bucket-wrap">
+        <div class="buckets">
+          <div class="card">
+            <header>
+              <div class="disc"><img id="artL" alt="" style="display:none;width:100%;height:100%;object-fit:cover"></div>
+              <div class="ttl">Low<br>Energy</div>
+            </header>
+            <div id="lowList" class="tracks"></div>
+          </div>
+          <div class="card">
+            <header>
+              <div class="disc"><img id="artM" alt="" style="display:none;width:100%;height:100%;object-fit:cover"></div>
+              <div class="ttl">Medium<br>Energy</div>
+            </header>
+            <div id="medList" class="tracks"></div>
+          </div>
+          <div class="card">
+            <header>
+              <div class="disc"><img id="artH" alt="" style="display:none;width:100%;height:100%;object-fit:cover"></div>
+              <div class="ttl">High<br>Energy</div>
+            </header>
+            <div id="highList" class="tracks"></div>
+          </div>
+        </div>
+      </div>
+
+      <button id="genBtn" class="generate" disabled>GENERATE</button>
+    </section>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================
+   CONFIG — CHANGE THESE
+   ========================= */
+const SPOTIFY_CLIENT_ID = "YOUR_CLIENT_ID_HERE";     // <- set your Client ID
+const REDIRECT_URI = location.origin + "/sortify.html"; // <- must be in your Spotify app
+/* ========================= */
+
+const SCOPES = [
+  "playlist-read-private",
+  "playlist-modify-private",
+  "playlist-modify-public",
+  "user-read-email",
+  "user-read-private"
+];
+
+const $ = (sel) => document.querySelector(sel);
+const playlistsEl = $("#playlists");
+const genBtn = $("#genBtn");
+const toast = $("#toast");
+
+let currentUser = null;
+let selectedPL = null;
+let currentTracks = [];  // [{track, features}]
+let buckets = {low:[],med:[],high:[]};
+
+/* ---------- PKCE + TOKEN FLOW ---------- */
+function save(k,v){ localStorage.setItem(k,v); }
+function read(k){ return localStorage.getItem(k); }
+function del(k){ localStorage.removeItem(k); }
+
+async function exchangeCodeForToken(code){
+  const verifier = read("pkce_verifier");
+  if(!verifier){
+    showToast("Missing PKCE verifier. Go back to Login page.");
+    return null;
+  }
+  const body = new URLSearchParams({
+    client_id: SPOTIFY_CLIENT_ID,
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: REDIRECT_URI,
+    code_verifier: verifier
+  });
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await res.json();
+  if(data.access_token){
+    save("access_token", data.access_token);
+    save("refresh_token", data.refresh_token || "");
+    save("token_time", String(Date.now()));
+    save("token_expires_in", String(data.expires_in||3600));
+    return data.access_token;
+  }else{
+    showToast("Auth error — open login page again.");
+    console.error(data);
+    return null;
+  }
+}
+async function refreshToken(){
+  const refresh = read("refresh_token"); if(!refresh) return null;
+  const body = new URLSearchParams({
+    client_id: SPOTIFY_CLIENT_ID,
+    grant_type: "refresh_token",
+    refresh_token: refresh
+  });
+  const res = await fetch("https://accounts.spotify.com/api/token",{
+    method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body
+  });
+  const data = await res.json();
+  if(data.access_token){
+    save("access_token", data.access_token);
+    if(data.refresh_token) save("refresh_token", data.refresh_token);
+    save("token_time", String(Date.now()));
+    save("token_expires_in", String(data.expires_in||3600));
+    return data.access_token;
+  }
+  return null;
+}
+function tokenExpired(){
+  const ts = Number(read("token_time")||0);
+  const exp = Number(read("token_expires_in")||0);
+  if(!ts || !exp) return true;
+  return (Date.now()-ts) > (exp-60)*1000;
+}
+async function api(path, opts={}){
+  if(tokenExpired()) await refreshToken();
+  const token = read("access_token");
+  const res = await fetch(`https://api.spotify.com/v1${path}`,{
+    ...opts,
+    headers:{
+      "Authorization":`Bearer ${token}`,
+      "Content-Type":"application/json",
+      ...(opts.headers||{})
+    }
+  });
+  if(res.status===401){ await refreshToken(); return api(path,opts); }
+  return res.json();
+}
+
+/* ---------- UI HELPERS ---------- */
+function showToast(msg){
+  toast.textContent = msg;
+  toast.style.display = "block";
+  setTimeout(()=> toast.style.display="none", 3000);
+}
+function msToTime(ms){
+  const m = Math.floor(ms/60000), s = Math.round((ms%60000)/1000);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+/* ---------- APP LOGIC ---------- */
+async function loadUserAndPlaylists(){
+  currentUser = await api("/me");
+  const pls = await api("/me/playlists?limit=50");
+  playlistsEl.innerHTML = "";
+  pls.items.forEach(pl=>{
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="cover">${pl.images?.[0] ? `<img src="${pl.images[0].url}" alt="">` : ""}</div>
+      <div>${pl.name}</div>
+      <div class="count">${(pl.tracks?.total || 0).toLocaleString()}</div>`;
+    row.addEventListener("click", ()=>selectPlaylist(pl,row));
+    playlistsEl.appendChild(row);
+  });
+}
+
+async function selectPlaylist(pl,rowEl){
+  [...document.querySelectorAll(".row")].forEach(r=>r.classList.remove("active"));
+  rowEl.classList.add("active");
+  selectedPL = pl;
+  genBtn.disabled = true;
+
+  // Get all tracks
+  const items = await getAllTracks(pl.id);
+  const ids = items.map(x=>x.track?.id).filter(Boolean);
+  const feats = await getAudioFeatures(ids);
+  const map = new Map(feats.filter(Boolean).map(f=>[f.id,f]));
+  currentTracks = items
+    .filter(x=>x.track && map.get(x.track.id))
+    .map(x=>({ track:x.track, features:map.get(x.track.id) }));
+
+  renderBuckets(currentSortKey);
+}
+
+async function getAllTracks(playlistId){
+  let out=[], next=`/playlists/${playlistId}/tracks?limit=100`;
+  while(next){
+    const page = await api(next.replace("/v1",""));
+    out = out.concat(page.items);
+    next = page.next ? page.next.replace("https://api.spotify.com/v1","") : "";
+  }
+  return out;
+}
+async function getAudioFeatures(ids){
+  const out=[];
+  for(let i=0;i<ids.length;i+=100){
+    const batch = ids.slice(i,i+100).join(",");
+    const data = await api(`/audio-features?ids=${batch}`);
+    out.push(...(data.audio_features||[]));
+  }
+  return out;
+}
+
+/* ---------- Bucketing ---------- */
+let currentSortKey = "energy";
+const thresholds = {
+  energy: {low:0.35, high:0.7},
+  valence:{low:0.35, high:0.7},
+  acousticness:{low:0.35, high:0.7},
+  tempo:{low:90, high:120},           // BPM
+  loudness:{low:-20, high:-8},        // dB (approx)
+  popularity:{low:25, high:60}        // 0..100
+};
+
+function renderBuckets(key="energy"){
+  currentSortKey = key;
+  const th = thresholds[key] || thresholds.energy;
+
+  const list = [...currentTracks].filter(t=>{
+    if(key==="popularity") return Number.isFinite(t.track.popularity);
+    return Number.isFinite(t.features?.[key]);
+  });
+
+  buckets = {low:[],med:[],high:[]};
+  for(const it of list){
+    const v = key==="popularity" ? it.track.popularity : it.features[key];
+    if(v < th.low) buckets.low.push(it);
+    else if(v >= th.high) buckets.high.push(it);
+    else buckets.med.push(it);
+  }
+
+  const paint = (arr, rootId, artId) =>{
+    const root = document.getElementById(rootId);
+    root.innerHTML = "";
+    arr.slice(0,15).forEach((it,idx)=>{
+      const t = it.track;
+      const div = document.createElement("a");
+      div.className = "track";
+      div.href = t.external_urls?.spotify || "#"; div.target="_blank";
+      div.innerHTML = `
+        <div class="idx">${idx+1}</div>
+        <div><div style="font-weight:700;color:#fff">${t.name}</div><div class="meta">${t.artists.map(a=>a.name).join(", ")}</div></div>
+        <div class="len">${msToTime(t.duration_ms)}</div>`;
+      root.appendChild(div);
+    });
+    const art = document.getElementById(artId);
+    const img = arr[0]?.track?.album?.images?.[0]?.url;
+    if(img){ art.src = img; art.style.display="block"; }
+  };
+
+  paint(buckets.low,"lowList","artL");
+  paint(buckets.med,"medList","artM");
+  paint(buckets.high,"highList","artH");
+
+  genBtn.disabled = !selectedPL || list.length===0;
+}
+
+/* ---------- Generate Playlists ---------- */
+genBtn.addEventListener("click", async ()=>{
+  if(!selectedPL || !currentUser) return;
+  genBtn.disabled = true; genBtn.textContent = "Generating…";
+
+  const make = async (name, items) =>{
+    if(!items.length) return;
+    const created = await api(`/users/${currentUser.id}/playlists`, {
+      method:"POST",
+      body: JSON.stringify({ name, description:`Auto-generated from ${selectedPL.name} via Sortify`, public:false })
+    });
+    const uris = items.map(x=>x.track.uri);
+    for(let i=0;i<uris.length;i+=100){
+      await api(`/playlists/${created.id}/tracks`, {
+        method:"POST",
+        body: JSON.stringify({ uris: uris.slice(i,i+100) })
+      });
+    }
+  };
+
+  await make(`${selectedPL.name} • Low Energy`, buckets.low);
+  await make(`${selectedPL.name} • Medium Energy`, buckets.med);
+  await make(`${selectedPL.name} • High Energy`, buckets.high);
+
+  genBtn.textContent = "GENERATE"; genBtn.disabled = false;
+  showToast("Done! Check your Spotify playlists.");
+});
+
+/* ---------- Chips ---------- */
+document.getElementById("chips").addEventListener("click",(e)=>{
+  const btn = e.target.closest(".chip"); if(!btn) return;
+  [...document.querySelectorAll(".chip")].forEach(c=>c.classList.remove("active"));
+  btn.classList.add("active");
+  const key = btn.dataset.key;
+  if(currentTracks.length) renderBuckets(key);
+});
+
+/* ---------- INIT ---------- */
+(async function init(){
+  // Handle authorization code from page 1
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  if(code){
+    await exchangeCodeForToken(code);
+    // clean query
+    history.replaceState({}, document.title, REDIRECT_URI);
+  }
+  const token = read("access_token");
+  if(!token){
+    showToast("No token found. Open the Login page.");
+    return;
+  }
+  await loadUserAndPlaylists();
+})();
+</script>
+</body>
+</html>
