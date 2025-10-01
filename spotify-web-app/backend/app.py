@@ -16,7 +16,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 # ==============================================================================
 
 def get_token():
-    """Get token from session and refresh if expired"""
+    # Token
     token_info = session.get('token_info', None)
     if not token_info:
         return None
@@ -30,7 +30,7 @@ def get_token():
 
 
 def get_spotify_client():
-    """Get authenticated Spotify client"""
+    # Get Spotify client
     token_info = get_token()
     if not token_info:
         return None
