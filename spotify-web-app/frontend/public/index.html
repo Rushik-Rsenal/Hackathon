@@ -1,11 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Web App</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sortify — Login with Spotify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --g1:#23c35b; --g2:#159653;
+      --white:#ffffff; --ink:#111; --muted:#d9f3e3;
+      --chip:#f2fff8;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+      color:var(--white);
+      background:radial-gradient(1000px 700px at 70% -10%, #7de3a0 0%, transparent 50%),
+                 linear-gradient(180deg, var(--g1), #6edc9c 55%, #ecfff5 120%);
+    }
+    .shell{min-height:100%; display:grid; grid-template-rows:auto 1fr auto}
+    header{display:flex; align-items:center; justify-content:center; padding:22px 24px;}
+    .brand{
+      display:inline-flex; align-items:center; gap:14px;
+      padding:10px 18px; background:var(--chip);
+      color:#167c43; border-radius:999px;
+      font-weight:800; font-size:34px;
+      box-shadow:0 10px 24px rgba(0,0,0,.12);
+    }
+    .brand::before,.brand::after{content:"•"; color:#0b8a44; font-weight:900}
+    .hero{display:grid; place-items:center; padding:18px 20px;}
+    .card{
+      width:min(900px,92vw);
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:22px;
+      box-shadow:0 24px 60px rgba(0,0,0,.18);
+      display:grid; grid-template-columns:1fr 1fr; overflow:hidden;
+    }
+    @media (max-width:880px){.card{grid-template-columns:1fr}}
+    .left{padding:40px 36px; color:var(--white)}
+    .title{font-size:42px; font-weight:800; margin:0 0 12px}
+    .subtitle{font-size:16px; color:#f3fdf7; margin-bottom:20px}
+    .list{display:grid; gap:12px; margin:20px 0 26px}
+    .li{display:flex; gap:12px; align-items:flex-start}
+    .badge{
+      width:26px;height:26px;border-radius:8px;flex:0 0 26px;
+      display:grid;place-items:center;
+      background:#0f6b3b; color:#fff; font-weight:700;font-size:14px;
+    }
+    .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      border-radius:999px; padding:14px 22px;
+      font-weight:700; font-size:16px;
+      background:#fff; color:#157a42;
+      box-shadow:0 14px 28px rgba(0,0,0,.18);
+      transition:transform .08s ease;
+    }
+    .btn:hover{transform:translateY(-1px);}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)}
+    .consent{font-size:12px; color:var(--muted); margin-top:10px}
+    .err{margin-top:10px; background:rgba(220,50,60,.3); padding:8px 12px; border-radius:10px; display:none}
+    .right{
+      padding:32px; background:linear-gradient(180deg, #1ea85a, #107343);
+      display:grid; place-items:center;
+    }
+    .preview{
+      width:min(420px,90%); border-radius:18px;
+      background:#151515; color:#f6f6f6;
+      box-shadow:0 12px 40px rgba(0,0,0,.35);
+      padding:16px;
+    }
+    .pv-title{font-weight:800;font-size:20px;margin-bottom:10px}
+    .pv-row{display:grid; grid-template-columns:20px 1fr 48px; gap:10px;
+      background:#202020; padding:8px 10px; border-radius:10px; font-size:13px; color:#ddd; margin-top:6px}
+    footer{text-align:center; padding:16px; font-size:12px; color:#0d3a24}
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div class="shell">
+    <header><div class="brand">Sortify</div></header>
+
+    <main class="hero">
+      <section class="card">
+        <!-- Left side -->
+        <div class="left">
+          <h1 class="title">Login with Spotify</h1>
+          <p class="subtitle">Connect your account to let Sortify read your playlists, analyze tracks, and create smart playlists.</p>
+
+          <div class="list">
+            <div class="li"><div class="badge">1</div><div><strong>Pick your playlists</strong><br/>Access your personal or public playlists.</div></div>
+            <div class="li"><div class="badge">2</div><div><strong>Sort by criteria</strong><br/>Energy, BPM, Loudness, Valence, Acousticness…</div></div>
+            <div class="li"><div class="badge">3</div><div><strong>Generate new lists</strong><br/>Automatically split into Low, Medium, High Energy groups.</div></div>
+          </div>
+
+          <div class="cta">
+            <button id="loginBtn" class="btn"><span id="btnText">Login with Spotify</span></button>
+          </div>
+          <p class="consent">Sortify only requests permission to <b>read</b> and <b>create</b> playlists. You can revoke access anytime from your Spotify account settings.</p>
+          <div class="err" id="errBox"></div>
+        </div>
+
+        <!-- Right side: preview -->
+        <div class="right">
+          <div class="preview">
+            <div class="pv-title">Preview — Energy Buckets</div>
+            <div class="pv-row"><div>1</div><div>Strangers</div><div>2:52</div></div>
+            <div class="pv-row"><div>2</div><div>EGO</div><div>3:37</div></div>
+            <div class="pv-row"><div>3</div><div>When I See You</div><div>1:44</div></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>© 2025 Sortify • Demo project for Spotify API</footer>
+  </div>
+
+<script>
+  /******** CONFIG ********/
+  const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID";
+  const REDIRECT_URI = location.origin + "/sortify.html";
+  const SCOPES = [
+    "playlist-read-private",
+    "playlist-modify-private",
+    "playlist-modify-public"
+  ];
+
+  // PKCE helpers
+  function randomString(len=64){
+    const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let s=""; for(let i=0;i<len;i++) s+=chars.charAt(Math.floor(Math.random()*chars.length)); return s;
+  }
+  async function sha256(str){
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest("SHA-256", buf);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+
+  const loginBtn=document.getElementById("loginBtn");
+  const btnText=document.getElementById("btnText");
+  const errBox=document.getElementById("errBox");
+
+  loginBtn.onclick = async ()=>{
+    try{
+      btnText.textContent="Redirecting…";
+      loginBtn.disabled=true;
+      const verifier = randomString(128);
+      const challenge = await sha256(verifier);
+      localStorage.setItem("pkce_verifier", verifier);
+
+      const url=new URL("https://accounts.spotify.com/authorize");
+      url.searchParams.set("client_id", SPOTIFY_CLIENT_ID);
+      url.searchParams.set("response_type","code");
+      url.searchParams.set("redirect_uri",REDIRECT_URI);
+      url.searchParams.set("scope",SCOPES.join(" "));
+      url.searchParams.set("code_challenge_method","S256");
+      url.searchParams.set("code_challenge",challenge);
+
+      window.location=url.toString();
+    }catch(err){
+      errBox.style.display="block";
+      errBox.textContent="Login failed: "+err.message;
+      loginBtn.disabled=false;
+      btnText.textContent="Login with Spotify";
+    }
+  };
+</script>
 </body>
 </html>
