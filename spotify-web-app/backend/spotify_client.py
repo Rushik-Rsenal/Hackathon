@@ -4,91 +4,103 @@
 # Calls the Spotify API to get user profile, playlists, and tracks
 # Requires users to login with their Spotify account
 # The program uses the Spotipy Python library to interact with the API
-# 
-# Documentation:
-# - Spotipy Python library: https://spotipy.readthedocs.io/en/2.25.1/#
-# - Spotify Web API: https://developer.spotify.com/documentation/web-api/
 # ==============================================================================
 
-# ==============================================================================
-# Modules
-# ==============================================================================
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
-
-# ==============================================================================
-# Global Variables
-# ==============================================================================
-
-# Load environment variable from .env file
+# Load environment variables
 load_dotenv()
 
-# Access API key
-client_id = os.getenv('client_id')
-client_secret = os.getenv('client_secret')
-redirect_uri = os.getenv('redirect_uri')
+# Access API keys
+CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 
 # Scope: What data we want from the user's account
-scope = "playlist-read-private playlist-modify-public playlist-modify-private user-library-read"
-
-# sp: data from Spotify API client
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
-                                                client_secret=client_secret,
-                                                redirect_uri=redirect_uri,
-                                                scope=scope))
+SCOPE = "playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-top-read user-read-recently-played"
 
 
 # ==============================================================================
-# FUNCTION IMPLEMENTATION
+# AUTHENTICATION FUNCTIONS
+# ==============================================================================
+
+def create_spotify_oauth(redirect_uri: str):
+    """Create SpotifyOAuth object for authentication"""
+    return SpotifyOAuth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        redirect_uri=redirect_uri,
+        scope=SCOPE
+    )
+
+
+def refresh_token_if_expired(sp_oauth, token_info):
+    """Check if token is expired and refresh if needed"""
+    if sp_oauth.is_token_expired(token_info):
+        token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+    return token_info
+
+
+# ==============================================================================
+# SPOTIFY API FUNCTIONS
 # ==============================================================================
 
 def get_user_profile(sp) -> dict:
-    # Get the current user's profile information
-    # Display name, external URLs, followers, etc.
+    """Get the current user's profile information"""
     user_profile = sp.current_user()
     return user_profile
 
 
-def get_user_playlist(sp) -> dict:
-    # Get the current user's playlists
-    user_playlists = sp.current_user_playlists(limit = 50)
-
-    # Printing playlist names and IDs - debugging
-    for playlist in user_playlists['items']:
-        print(f"{playlist['name']} - {playlist['id']}")
-    
-    return user_playlists
+def get_user_playlists(sp, limit=50) -> list:
+    """Get the current user's playlists"""
+    user_playlists = sp.current_user_playlists(limit=limit)
+    return user_playlists['items']
 
 
-def get_playlist_tracks(sp, playlist_id: str) -> dict:
-    # Get tracks from a specific playlist
+def get_playlist_tracks(sp, playlist_id: str) -> list:
+    """Get tracks from a specific playlist"""
     results = sp.playlist_tracks(playlist_id)
-
-    # Printing track names and artists - debugging
+    
+    tracks = []
     for item in results['items']:
         track = item['track']
-        print(f"{track['name']} by {track['artists'][0]['name']}")
+        if track and track['id']:
+            tracks.append({
+                'id': track['id'],
+                'name': track['name'],
+                'artist': track['artists'][0]['name'],
+                'uri': track['uri']
+            })
     
-    return results
+    return tracks
 
 
+def get_top_tracks(sp, limit=10, time_range='short_term') -> list:
+    """Get user's most played tracks"""
+    results = sp.current_user_top_tracks(limit=limit, time_range=time_range)
+    
+    tracks = []
+    for item in results['items']:
+        tracks.append({
+            'name': item['name'],
+            'artist': item['artists'][0]['name']
+        })
+    
+    return tracks
 
-def main() -> None:
-    # Get user profile
-    # In case we want UX to refer to the user's name, etc.
-    user_profile = get_user_profile(sp)
-    # print(user_profile)
 
-
-    # Get tracks from a specific playlist
-    playlist_id = get_user_playlist(sp)['items'][1]['id']
-    playlist_tracks = get_playlist_tracks(sp, playlist_id)
-
-
-
-
-if __name__ == "__main__":
-    main()
+def get_recently_played(sp, limit=10) -> list:
+    """Get user's recently played tracks"""
+    results = sp.current_user_recently_played(limit=limit)
+    
+    tracks = []
+    for item in results['items']:
+        tracks.append({
+            'name': item['track']['name'],
+            'artist': item['track']['artists'][0]['name'],
+            'album': item['track']['album']['name']
+        })
+    
+    return tracks

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Spotify Web App{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% endblock %}
+</head>
+<body>
+    <header>
+        <h1>Spotify Web App</h1>
+        {% block navbar %}
+        <!-- Navbar here? -->
+        {% endblock %}
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- Contents -->
+        {% endblock %}
+    </main>
+
+    {% block scripts %}
+    <!-- javascript -->
+    {% endblock %}
+</body>
+</html>

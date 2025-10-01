@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spotify Web App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Spotify Web App</h1>
+    </header>
+    <main>
+        <p>Log in to your Spotify account to get started.</p>
+        <a href="{{ url_for('login') }}" class="btn">Login with Spotify</a>
+    </main>
+</body>
+</html>
